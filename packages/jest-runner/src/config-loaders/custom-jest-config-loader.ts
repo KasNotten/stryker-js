@@ -10,26 +10,32 @@ import type { requireResolve } from '@stryker-mutator/util';
 import { JestRunnerOptionsWithStrykerOptions } from '../jest-runner-options-with-stryker-options.js';
 import * as pluginTokens from '../plugin-tokens.js';
 
-import { JestConfigLoader } from './jest-config-loader.js';
+import { JestConfigLoaderAsync } from './jest-config-loader-async.js';
 
 /**
  * The Default config loader will load the Jest configuration using the package.json in the package root
  */
-export class CustomJestConfigLoader implements JestConfigLoader {
+export class CustomJestConfigLoader implements JestConfigLoaderAsync {
   public static inject = tokens(commonTokens.logger, commonTokens.options, pluginTokens.requireFromCwd);
 
   constructor(private readonly log: Logger, private readonly options: StrykerOptions, private readonly requireFromCwd: typeof requireResolve) {}
 
-  public loadConfig(): Config.InitialOptions {
-    const jestConfig = this.readConfigFromJestConfigFile() ?? this.readConfigFromPackageJson() ?? {};
+  public async loadConfig(): Promise<Config.InitialOptions> {
+    const jestConfig = (await this.readConfigFromJestConfigFile()) ?? this.readConfigFromPackageJson() ?? {};
     this.log.debug('Final jest config: %s', jestConfig);
     return jestConfig;
   }
 
-  private readConfigFromJestConfigFile(): Config.InitialOptions | undefined {
+  private async readConfigFromJestConfigFile(): Promise<Config.InitialOptions | undefined> {
     const configFilePath = this.resolveJestConfigFilePath();
     if (configFilePath) {
-      const config = this.requireFromCwd(configFilePath) as Config.InitialOptions;
+      const potentialConfig: unknown = this.requireFromCwd(configFilePath);
+      let config;
+      if (typeof potentialConfig === 'function') {
+        config = (await potentialConfig()) as Config.InitialOptions;
+      } else {
+        config = potentialConfig as Config.InitialOptions;
+      }
       this.log.debug(`Read Jest config from ${configFilePath}`);
       this.setRootDir(config, configFilePath);
       return config;
