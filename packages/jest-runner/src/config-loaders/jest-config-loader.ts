@@ -16,3 +16,12 @@ export interface JestConfigLoader {
    */
   loadConfig(): Config.InitialOptions;
 }
+
+export interface JestConfigLoaderAsync {
+  /*
+   * Load the JSON representation of a Jest Configuration.
+   *
+   * @return {JestConfiguration} a Promise with an object containing the Jest configuration.
+   */
+  loadConfig(): Promise<Config.InitialOptions>;
+}

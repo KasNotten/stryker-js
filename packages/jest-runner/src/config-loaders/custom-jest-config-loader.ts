@@ -10,7 +10,7 @@ import type { requireResolve } from '@stryker-mutator/util';
 import { JestRunnerOptionsWithStrykerOptions } from '../jest-runner-options-with-stryker-options.js';
 import * as pluginTokens from '../plugin-tokens.js';
 
-import { JestConfigLoaderAsync } from './jest-config-loader-async.js';
+import { JestConfigLoaderAsync } from './jest-config-loader.js';
 
 /**
  * The Default config loader will load the Jest configuration using the package.json in the package root
